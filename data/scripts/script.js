@@ -108,18 +108,6 @@ el.rstbMenuLink.addEventListener ('mousedown', function (e) {
     displayRSTBMenu (e.clientX, e.clientY);
 });
 
-el.rstbMenuDisplayabilityToggleButtonWrapper.addEventListener ('mousedown', toggleButtonDisplayability);
-
-
-
-// Shows or hides the button based on the settings provided by the user
-window.addEventListener ('scroll', hideRSTBMenu);
-window.addEventListener ('resize', hideRSTBMenu);
-for (var i = 0; i < redditContentArray.length; i++) redditContentArray[i].addEventListener ('mousedown', hideRSTBMenu);
-if (redditListingChooser) redditListingChooser.addEventListener ('mousedown', hideRSTBMenu);
-
-window.addEventListener ('resize', executeButtonDisplayability);
-
 function toggleButtonDisplayability (calledFromInternal) {
     if (bT.holdsTrue ('displayOptionAnimationNotInitialized')) {
         displayAnimator .playAnimation (MENU_DISP_BG_ANIMATION)
@@ -143,6 +131,20 @@ function toggleButtonDisplayability (calledFromInternal) {
 
     executeButtonDisplayability ();
 }
+
+el.rstbMenuDisplayabilityToggleButtonWrapper.addEventListener ('mousedown', toggleButtonDisplayability);
+
+
+
+// Shows or hides the button based on the settings provided by the user
+window.addEventListener ('scroll', hideRSTBMenu);
+window.addEventListener ('resize', hideRSTBMenu);
+for (var i = 0; i < redditContentArray.length; i++) redditContentArray[i].addEventListener ('mousedown', hideRSTBMenu);
+if (redditListingChooser) redditListingChooser.addEventListener ('mousedown', hideRSTBMenu);
+
+window.addEventListener ('resize', executeButtonDisplayability);
+
+
 
 
 
