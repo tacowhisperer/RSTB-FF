@@ -576,8 +576,8 @@ function reloadSettingsFromLocalStorage (callback1, callback2) {
         !!settings.buttonAlwaysDisplayed? bT.makeTrue ('buttonAlwaysDisplayed') : bT.makeFalse ('buttonAlwaysDisplayed');
 
         // Execute the callbacks that require initial states for the Button
-        callback1 ();
-        callback2 ();
+        callback1 ([true]);
+        callback2 ([true]);
     });
 }
 

@@ -162,14 +162,11 @@ window.addEventListener ('resize', executeButtonDisplayability);
 // Poll for RES to correctly set the resIsInstalled and the isNightMode bT booleans
 pollForRES ();
 
-// Make sure that the button is visible if needed upon initialization if the user set it to hide
-executeButtonDisplayability ();
-
 // Reload the settings from the previous page reload, if any
 reloadSettingsFromLocalStorage (toggleSidebar, toggleButtonDisplayability);
 
 
-// Finish by logging the trademark on the console for pro users to admire (or not hehe)
+// Finish by logging the logo on the console for pro users to admire (or not hehe)
 logRSTBLogo ();
 
 }
