@@ -377,7 +377,7 @@ function Animator () {
 
 /**
  * Instantiates a boolean tree handler to simplify adding user-toggleable values to code by removing the need for
- * nested conditionals. Wors similarly to the Animator in that once instantiated, everything just works or not based
+ * nested conditionals. Works similarly to the Animator in that once instantiated, everything just works or not based
  * on its value.
  *
  * Arguments:
@@ -397,8 +397,8 @@ function BooleanTree (booleanStructure) {
     var boolStruct = booleanStructure || {
     /*  booleanName0: {
             value: boolean,
-            parents: [],
-            children: []
+            parents: [parentBooleanName0, parentBooleanName1, ...],
+            children: [childBooleanName0, childBooleanName1, ...]
         }, ... */
     };
 

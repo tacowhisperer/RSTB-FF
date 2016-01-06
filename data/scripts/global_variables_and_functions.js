@@ -310,16 +310,16 @@ var rstbElements = [
         'rstbMenuDisplayabilityToggleButtonNob'
     ],
 
-// Reddit-specific DOM elements
-redditSCA = document.getElementsByClassName ('side'),
-redditHeader = document.getElementById ('header'),
-redditListingChooser = document.getElementsByClassName ('listing-chooser')[0],
-redditTabMenu = document.getElementsByClassName ('tabmenu')[0],
-redditContentArray = document.getElementsByClassName ('content');
-resNightSwitchToggle = document.getElementById ('nightSwitchToggle'),
-body = document.body;
+    // Reddit-specific DOM elements
+    redditSCA            = document.getElementsByClassName ('side'),
+    redditHeader         = document.getElementById ('header'),
+    redditListingChooser = document.getElementsByClassName ('listing-chooser')[0],
+    redditTabMenu        = document.getElementsByClassName ('tabmenu')[0],
+    redditContentArray   = document.getElementsByClassName ('content'),
+    resNightSwitchToggle = document.getElementById ('nightSwitchToggle'),
+    body                 = document.body;
 
-// Store the side class arra display style for all side class elements and push the button's display
+// Store the side class array display style for all side class elements and push the button's display
 var sCDS = [];
 for (var i = 0; i < redditSCA.length; i++) sCDS.push (redditSCA[i].style.display);
 
