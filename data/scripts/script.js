@@ -18,16 +18,27 @@ var rstbTab = document.createElement ('li'),
 	rstbMenuDiv = document.createElement ('div');
 
 // Create the tab that goes in the Reddit Tab Menu
-rstbTab.innerHTML = '<a href="javascript:void(0)" id="rstbmenulink" class="choice">' + MENU_TAB_TEXT + '</a>';
+var newTabEntry = document.createElement ('a');
+newTabEntry.setAttribute ('href', 'javascript:void(0)');
+newTabEntry.setAttribute ('id', 'rstbmenulink');
+newTabEntry.setAttribute ('class', 'choice');
+newTabEntry.innerHTML = 'RSTB';
+
+rstbTab.appendChild (newTabEntry);
 redditTabMenu.appendChild (rstbTab);
+newTabEntry = null;
 
 
 
 // Create the RSTB Menu that will appear when the tab is clicked
 rstbMenuDiv.setAttribute ('id', 'rstbmenudiv');
 rstbMenuDiv.setAttribute ('style', 'display:none;');
+
+rstbMenuDiv.appendChild (rstbMenuSpacerElement);
+rstbMenuDiv.appendChild (svgCodeElement);
+rstbMenuDiv.appendChild (rstbMenuDisplayabilityToggleOptionElement);
+
 body.appendChild (rstbMenuDiv);
-rstbMenuDiv.innerHTML = rstbMenuSpacerHTML + svgCode + rstbMenuDisplayabilityToggleOptionHTML;
 
 
 
@@ -152,7 +163,7 @@ window.addEventListener ('resize', executeButtonDisplayability);
 pollForRES ();
 
 // Make sure that the button is visible if needed upon initialization if the user set it to hide
-setTimeout (executeButtonDisplayability, 0);
+executeButtonDisplayability ();
 
 // Reload the settings from the previous page reload, if any
 reloadSettingsFromLocalStorage (toggleSidebar, toggleButtonDisplayability);

@@ -68,7 +68,6 @@ var BG_RGB             = [255, 255, 255],
     ACTIVE_ALPHA       = 1.0,
 
     // Easy-to-manipulate RSTB menu variables and CSS values. Units are separate for potential math operations
-    MENU_TAB_TEXT       = 'RSTB',
     MENU_TD_TEXT        = 'Always Show Button: ',
     MENU_BG_DAY         = [243, 243, 243],
     MENU_STROKE_DAY     = [22, 22, 22],
@@ -83,7 +82,7 @@ var BG_RGB             = [255, 255, 255],
     MENU_ARROW_HALF_LEN = 7.5,
     MENU_FRAME_DURATION = 7,
     MHW                 = MENU_WIDTH / 2,
-    MENU_OPT_DESCRIPTOR = 'When off, the button will hide&#xA;when the sidebar does not take&#xA;up too much screen space.',
+    MENU_OPT_DESCRIPTOR = 'When off, the button will hide when the sidebar does not take up too much screen space.',
 
     // Easy-to-manipulate animation variables
     TXT_ANIMATION   = 'Text Color Animation',
@@ -238,23 +237,56 @@ var menuSVGPoints = '0,' + MENU_ARROW_HEIGHT + ' ' +
                     '0,' + MENU_HEIGHT,
 
     // HTML for the RSTB Menu
-    xml       = ' xmlns="http://www.w3.org/2000/svg"',
-    svgCode   = '<div id="rstbmenusvgwrapper"><svg width="'+ MENU_WIDTH + MW_UN + '" height="' + MENU_HEIGHT + MH_UN + '"' + xml +
-                  'stroke-linejoin="miter" id="rstbmenusvg">' +
-                    '<g>' +
-                        '<polygon points="' + menuSVGPoints + '" fill="rgba(0,0,0,0)" id="rstbmenusvgpolygon"/>' +
-                    '</g>' +
-                '</svg></div>',
+    xmlns     = 'http://www.w3.org/2000/svg',
 
-    rstbMenuSpacerHTML = '<div id="rstbmenuspacer"></div>',
+    wrapperElement = document.createElement ('div'),
+    svgElement = document.createElementNS (xmlns, 'svg'),
+    polygonElement = document.createElementNS (xmlns, 'polygon'),
 
-    tl = ' title="' + MENU_OPT_DESCRIPTOR + '"',
-    rstbMenuDisplayabilityToggleOptionHTML  =   '<div id="rstbmenudisplayabilitytoggleoption" class="rstbmenuoption"' + tl + '>' +
-                                                    MENU_TD_TEXT + '<div id="rstbmenudisplayabilitytogglebuttonwrapper">' +
-                                                        '<div id="rstbmenudisplayabilitytogglebuttonnob">' +
-                                                        '</div>' +
-                                                    '</div>' +
-                                                '</div>';
+    spacerElement = document.createElement ('div'),
+
+    optionElement = document.createElement ('div'),
+    optionElementWrapper = document.createElement ('div'),
+    optionNobElement = document.createElement ('div'),
+    tdTextElement = document.createTextNode (MENU_TD_TEXT);
+
+    wrapperElement.setAttribute ('id', 'rstbmenusvgwrapper');
+    svgElement.setAttribute ('width', MENU_WIDTH + MW_UN);
+    svgElement.setAttribute ('height', MENU_HEIGHT + MH_UN);
+    svgElement.setAttribute ('stroke-linejoin', 'miter');
+    svgElement.setAttribute ('id', 'rstbmenusvg');
+    polygonElement.setAttribute ('points', menuSVGPoints);
+    polygonElement.setAttribute ('fill', 'black');
+    polygonElement.setAttribute ('id', 'rstbmenusvgpolygon');
+
+    spacerElement.setAttribute ('id', 'rstbmenuspacer');
+
+    optionElement.setAttribute ('id', 'rstbmenudisplayabilitytoggleoption');
+    optionElement.setAttribute ('class', 'rstbmenuoption');
+    optionElement.setAttribute ('title', MENU_OPT_DESCRIPTOR);
+    optionElement.appendChild (tdTextElement);
+
+    optionElementWrapper.setAttribute ('id', 'rstbmenudisplayabilitytogglebuttonwrapper');
+
+    optionNobElement.setAttribute ('id', 'rstbmenudisplayabilitytogglebuttonnob');
+
+
+    // Re-create the svgCode element innerHTML
+    svgElement.appendChild (polygonElement);
+    wrapperElement.appendChild (svgElement);
+
+var svgCodeElement = wrapperElement;
+
+    // Re-create the menuSpacerHTML innerHTML
+var rstbMenuSpacerElement = spacerElement;
+
+    // Re-create the rstbMenuDisplayabilityToggleOptionHTML innerHTML
+    optionElementWrapper.appendChild (optionNobElement);
+    optionElement.appendChild (optionElementWrapper);
+
+var rstbMenuDisplayabilityToggleOptionElement = optionElement;
+
+
 
 var LEFT_CLICK   = 1,
     MIDDLE_CLICK = 2,
