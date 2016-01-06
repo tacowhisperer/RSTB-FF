@@ -1,7 +1,7 @@
 {
   "title": "Reddit Side Toggle Button",
   "name": "rstb-ff",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Enables a more pleasant experience viewing Reddit on a smaller window by toggling the visibility of the sidebar.",
   "main": "index.js",
   "author": "Andres Salgado",
