@@ -1,16 +1,19 @@
 {
-  "title": "Reddit Side Toggle Button",
-  "name": "rstb-ff",
-  "version": "0.0.2",
-  "description": "Enables a more pleasant experience viewing Reddit on a smaller window by toggling the visibility of the sidebar.",
-  "main": "index.js",
-  "author": "Andres Salgado",
-  "engines": {
-    "firefox": ">=38.0a1",
-    "fennec": ">=38.0a1"
-  },
-  "license": "MIT",
-  "keywords": [
-    "jetpack"
-  ]
+    "title": "Reddit Side Toggle Button",
+    "name": "rstb-ff",
+    "version": "0.0.2",
+    "description": "Enables a more pleasant experience viewing Reddit on a smaller window by toggling the visibility of the sidebar.",
+    "author": "Andres Salgado",
+
+    "main": "index.js",
+    "engines": {
+        "firefox": ">=38.0a1",
+        "fennec": ">=38.0a1"
+    },
+
+    "keywords": [
+        "jetpack"
+    ],
+
+    "license": "MIT"
 }
