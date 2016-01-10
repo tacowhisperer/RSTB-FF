@@ -167,6 +167,6 @@ reloadSettingsFromLocalStorage (toggleSidebar, toggleButtonDisplayability);
 
 
 // Finish by logging the logo on the console for pro users to admire (or not hehe)
-logRSTBLogo ();
+// logRSTBLogo ();
 
 }

@@ -33,6 +33,10 @@
  *                                 isActive          - True if the animation should be running, false otherwise. Defaults to true.
  *                                 animateNegatively - True if the animation should be negative (1 -> 0), false otherwise (0 -> 1)
  *                                                     Defaults to false.
+ *                                 isSymmetric       - Specifies whether the animation should inverse its transform function when
+ *                                                     switching animation direction or not (i.e. like a car turning 180 degrees
+ *                                                     and always driving forward, or simply driving forward and then hitting
+ *                                                     reverse along the same path traveled).
  *     removeAnimation               - [animation] <Removes the animation from the animator> (this obj)
  *     start                         - [] <Starts the animator main loop> (this obj)
  *     play                          - [immediatelyReplay] <Reenables the main loop and plays animations in fed array> (this obj)
@@ -58,6 +62,7 @@ function Animator () {
         INTERPOL_TRANS  = ++I,
         UPDATE_ARGS     = ++I,
         FRAME_GENERATOR = ++I,
+        IS_SYMMETRIC    = ++I,
 
         // Used for keeping track of the internal loop
         animIsStarted = false,
@@ -76,7 +81,10 @@ function Animator () {
 
                 // Stores the interpolated value in the last entry of the UPDATE_ARGS array
                 var uA = a[UPDATE_ARGS], p = fG.next (a[ANIM_DIRECTION]).percent ();
-                uA[uA.length - 1] = a[INTERPOLATOR](a[START_VALUE], a[END_VALUE], a[INTERPOL_TRANS](p));
+                if (!a[ANIM_DIRECTION] && a[IS_SYMMETRIC])
+                    uA[uA.length - 1] = a[INTERPOLATOR](a[END_VALUE], a[START_VALUE], a[INTERPOL_TRANS](1 - p));
+
+                else uA[uA.length - 1] = a[INTERPOLATOR](a[START_VALUE], a[END_VALUE], a[INTERPOL_TRANS](p));
 
                 // Call the updator to do whatever it needs to do
                 a[UPDATER].apply (a[UPDATER], uA);
@@ -110,6 +118,7 @@ function Animator () {
             up = opts.updater,
             iT = opts.interpolTransform || function (v) {return v;},
             uA = opts.updateArgs,
+            iS = typeof opts.isSymmetric == 'boolean'? opts.isSymmetric : true,
             fG = new FrameGenerator (opts.numFrames);
 
         // Create a new reference for the updater arguments and append a spot for the output of the interpolator function
@@ -119,7 +128,7 @@ function Animator () {
         if (!iA) fG.pause ();
 
         // Store the animation in the animation object
-        animations[opts.animationName] = [aD, sV, eV, ip, up, iT, uA, fG];
+        animations[opts.animationName] = [aD, sV, eV, ip, up, iT, uA, fG, iS];
 
         return this;
     };
@@ -318,10 +327,10 @@ function Animator () {
         // Returns whether this FrameGenerator is started
         this.isStarted = function () {return isStarted;};
 
-        // Generates the next value for i_t. Counts backward if !!neg === true
-        this.next = function (neg) {
+        // Generates the next value for i_t. Counts backward if !!pos === false
+        this.next = function (pos) {
             if (isNotPaused && isStarted) {
-                var dt = (Date.now () - t_i - offset) * (neg? BACKWARD : FORWARD);
+                var dt = (Date.now () - t_i - offset) * (pos? FORWARD : BACKWARD);
                 i_t = rk4 (i_t, FPMS, dt, function () {return 0;})[0];
 
                 // Does a bound check on the new value of i_t
@@ -339,7 +348,7 @@ function Animator () {
         this.frame = function () {return i_t;};
 
         // Returns frame information as a percentage from [0, 1]
-        this.percent = function () {return 1 - i_t / n;};
+        this.percent = function () {return i_t / n;};
 
         /**
          * Performs Runge-Kutta integration for a discrete value dt. Used for normalizing i in animation
