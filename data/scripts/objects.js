@@ -63,6 +63,7 @@ function Animator () {
         UPDATE_ARGS     = ++I,
         FRAME_GENERATOR = ++I,
         IS_SYMMETRIC    = ++I,
+        ANIM_DIR_CHANGE = ++I, // Used to differentiate between animation direction and animation was toggled
 
         // Used for keeping track of the internal loop
         animIsStarted = false,
@@ -78,13 +79,33 @@ function Animator () {
 
             // Only update values if the animation if not paused
             if (!fG.isPaused ()) {
-
-                // Stores the interpolated value in the last entry of the UPDATE_ARGS array
                 var uA = a[UPDATE_ARGS], p = fG.next (a[ANIM_DIRECTION]).percent ();
-                if (!a[ANIM_DIRECTION] && a[IS_SYMMETRIC])
-                    uA[uA.length - 1] = a[INTERPOLATOR](a[END_VALUE], a[START_VALUE], a[INTERPOL_TRANS](1 - p));
 
-                else uA[uA.length - 1] = a[INTERPOLATOR](a[START_VALUE], a[END_VALUE], a[INTERPOL_TRANS](p));
+                // Reflects the animation transform if the animation should be symmetric
+                if (!a[ANIM_DIRECTION] && a[IS_SYMMETRIC]) {
+
+                    if (a[ANIM_DIR_CHANGE]) {
+                        // Patches the discontinuity from flipping the animation direction
+                        fG.revertTo (1 - p);
+                        p = 1 - p;
+
+                        a[ANIM_DIR_CHANGE] = false;
+                    }
+
+                    uA[uA.length - 1] = a[INTERPOLATOR](a[END_VALUE], a[START_VALUE], a[INTERPOL_TRANS](1 - p));
+                }
+
+                else {
+
+                    if (a[ANIM_DIR_CHANGE] && a[IS_SYMMETRIC]) {
+                        fG.revertTo (1 - p);
+                        p = 1 - p;
+
+                        a[ANIM_DIR_CHANGE] = false;
+                    }
+
+                    uA[uA.length - 1] = a[INTERPOLATOR](a[START_VALUE], a[END_VALUE], a[INTERPOL_TRANS](p));
+                }
 
                 // Call the updator to do whatever it needs to do
                 a[UPDATER].apply (a[UPDATER], uA);
@@ -119,7 +140,8 @@ function Animator () {
             iT = opts.interpolTransform || function (v) {return v;},
             uA = opts.updateArgs,
             iS = typeof opts.isSymmetric == 'boolean'? opts.isSymmetric : true,
-            fG = new FrameGenerator (opts.numFrames);
+            fG = new FrameGenerator (opts.numFrames),
+            dC = false; // direction change
 
         // Create a new reference for the updater arguments and append a spot for the output of the interpolator function
         uA = uA? copyUpdateArgumentArray (uA) : [null];
@@ -128,7 +150,7 @@ function Animator () {
         if (!iA) fG.pause ();
 
         // Store the animation in the animation object
-        animations[opts.animationName] = [aD, sV, eV, ip, up, iT, uA, fG, iS];
+        animations[opts.animationName] = [aD, sV, eV, ip, up, iT, uA, fG, iS, dC];
 
         return this;
     };
@@ -188,8 +210,17 @@ function Animator () {
 
     // Makes the specified animation's direction positive. Does nothing if the animation is not
     // found in the animations object.
+    var initDirection = false,
+        prevWasForward = false;
     this.setAnimationForward = function (animationName) {
-        if (animations[animationName]) animations[animationName][ANIM_DIRECTION] = true;
+        if (animations[animationName]) {
+            animations[animationName][ANIM_DIRECTION] = true;
+
+            if (initDirection && !prevWasForward) animations[animationName][ANIM_DIR_CHANGE] = true;
+            else initDirection = true;
+
+            prevWasForward = true;
+        }
 
         return this;
     };
@@ -197,7 +228,14 @@ function Animator () {
     // Makes the specified animation's direction negative. Does nothing if the animation is not
     // found in the animations object
     this.setAnimationBackward = function (animationName) {
-        if (animations[animationName]) animations[animationName][ANIM_DIRECTION] = false;
+        if (animations[animationName]) {
+            animations[animationName][ANIM_DIRECTION] = false;
+
+            if (initDirection && prevWasForward) animations[animationName][ANIM_DIR_CHANGE] = true;
+            else initDirection = true;
+
+            prevWasForward = false;
+        }
 
         return this;
     };
@@ -266,10 +304,13 @@ function Animator () {
         var n = numFrames,
             t_i = Date.now (),
             i_t = 0,
+
             offset = 0,         // Offsets new values of time by the amount of time paused
+            tPaused = t_i,      // Used to store the time when paused
+
             isStarted = false,  // Used to determine if the frame generator is "started"
             isNotPaused = true,
-            tPaused = t_i,      // Used to store the time when paused
+
             FPMS = 3 / 50,
             BACKWARD = -1,
             FORWARD = 1;
@@ -349,6 +390,18 @@ function Animator () {
 
         // Returns frame information as a percentage from [0, 1]
         this.percent = function () {return i_t / n;};
+
+        // Reverts the internal percentage to the percentage fed to the method
+        this.revertTo = function (percentage) {
+            if (isStarted) {
+                i_t = percentage * n;
+
+                if (i_t < 0) i_t = 0;
+                else if (i_t > n) i_t = n;
+            }
+
+            return this;
+        };
 
         /**
          * Performs Runge-Kutta integration for a discrete value dt. Used for normalizing i in animation

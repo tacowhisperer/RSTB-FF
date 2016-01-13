@@ -92,7 +92,7 @@ var BG_RGB             = [255, 255, 255],
     MENU_DISP_BG_ANIMATION = 'Displayability Background Animation',
     MENU_NOB_BG_ANIMATION  = 'Displayability Button Nob Background Animation',
     MENU_NOB_POSITION_ANIMATION = 'Displayability Button Nob Position Animation',
-    MENU_TOGGLE_FRAME_DUR  = 15,
+    MENU_TOGGLE_FRAME_DUR  = 150,
 
     // Ratio of side to body that will determine whether or not the button should appear
     SIDE_TO_BODY_RATIO = 0.342,
@@ -460,9 +460,13 @@ function rgbaInterpolate (sRGBA, eRGBA, q) {
 }
 
 function positionInterpolate (start, stop, q) {
-    var p = 1 - q;
+    var p = 1 - q,
+        pI = p * start + q * stop;
 
-    return p * start + q * stop;
+    console.log ('p: ' + p + '; f(p): ' + pI);
+    console.log ('q: ' + q + '; f(q): ' + (q * stop + p * start) + '\n');
+
+    return pI;
 }
 
 
