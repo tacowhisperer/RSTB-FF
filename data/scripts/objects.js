@@ -216,7 +216,12 @@ function Animator () {
         if (animations[animationName]) {
             animations[animationName][ANIM_DIRECTION] = true;
 
-            if (initDirection && !prevWasForward) animations[animationName][ANIM_DIR_CHANGE] = true;
+            if (initDirection && !prevWasForward) {
+
+            	console.log ('direction change!+\n');
+
+            	animations[animationName][ANIM_DIR_CHANGE] = true;
+            }
             else initDirection = true;
 
             prevWasForward = true;
@@ -231,7 +236,12 @@ function Animator () {
         if (animations[animationName]) {
             animations[animationName][ANIM_DIRECTION] = false;
 
-            if (initDirection && prevWasForward) animations[animationName][ANIM_DIR_CHANGE] = true;
+            if (initDirection && prevWasForward) {
+
+            	console.log ('direction change!-\n');
+
+            	animations[animationName][ANIM_DIR_CHANGE] = true;
+            }
             else initDirection = true;
 
             prevWasForward = false;
@@ -394,6 +404,7 @@ function Animator () {
         // Reverts the internal percentage to the percentage fed to the method
         this.revertTo = function (percentage) {
             if (isStarted) {
+            	offset = 0;
                 i_t = percentage * n;
 
                 if (i_t < 0) i_t = 0;
