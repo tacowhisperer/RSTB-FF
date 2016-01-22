@@ -53,17 +53,19 @@ function Animator () {
     var animations = {},
 
         // Indexing values for arrays inside of the animations array
-        I               = -1,
-        ANIM_DIRECTION  = ++I,
-        START_VALUE     = ++I,
-        END_VALUE       = ++I,
-        INTERPOLATOR    = ++I,
-        UPDATER         = ++I,
-        INTERPOL_TRANS  = ++I,
-        UPDATE_ARGS     = ++I,
-        FRAME_GENERATOR = ++I,
-        IS_SYMMETRIC    = ++I,
-        ANIM_DIR_CHANGE = ++I, // Used to differentiate between animation direction and animation was toggled
+        I                = -1,
+        ANIM_DIRECTION   = ++I,
+        START_VALUE      = ++I,
+        END_VALUE        = ++I,
+        INTERPOLATOR     = ++I,
+        UPDATER          = ++I,
+        INTERPOL_TRANS   = ++I,
+        UPDATE_ARGS      = ++I,
+        FRAME_GENERATOR  = ++I,
+        IS_SYMMETRIC     = ++I,
+        ANIM_DIR_CHANGE  = ++I, // Used to differentiate between animation direction and animation was toggled
+        INIT_DIRECTION   = ++I,
+        PREV_WAS_FORWARD = ++I,
 
         // Used for keeping track of the internal loop
         animIsStarted = false,
@@ -85,26 +87,32 @@ function Animator () {
                 if (!a[ANIM_DIRECTION] && a[IS_SYMMETRIC]) {
 
                     if (a[ANIM_DIR_CHANGE]) {
-                        // Patches the discontinuity from flipping the animation direction
-                        fG.revertTo (1 - p);
-                        p = 1 - p;
+                        // Patches the discontinuity from flipping the animation direction in linear time
+                        var xStar = fG.calculateXStar (a[INTERPOL_TRANS], true);
+                        fG.revertTo (xStar);
+                        uA[uA.length - 1] = a[INTERPOLATOR](a[END_VALUE], a[START_VALUE], a[INTERPOL_TRANS](1 - xStar));
+
 
                         a[ANIM_DIR_CHANGE] = false;
                     }
 
-                    uA[uA.length - 1] = a[INTERPOLATOR](a[END_VALUE], a[START_VALUE], a[INTERPOL_TRANS](1 - p));
+                    else uA[uA.length - 1] = a[INTERPOLATOR](a[END_VALUE], a[START_VALUE], a[INTERPOL_TRANS](1 - p));
                 }
 
+                // Reflects the animation transform for either a symmetric animation or an asymmetric animation
                 else {
 
                     if (a[ANIM_DIR_CHANGE] && a[IS_SYMMETRIC]) {
-                        fG.revertTo (1 - p);
-                        p = 1 - p;
+                        // Patches the discontinuity from flipping the animation direction in linear time
+                        var xStar = fG.calculateXStar (a[INTERPOL_TRANS], false);
+                        fG.revertTo (xStar);
+                        uA[uA.length - 1] = a[INTERPOLATOR](a[START_VALUE], a[END_VALUE], a[INTERPOL_TRANS](xStar));
+
 
                         a[ANIM_DIR_CHANGE] = false;
                     }
 
-                    uA[uA.length - 1] = a[INTERPOLATOR](a[START_VALUE], a[END_VALUE], a[INTERPOL_TRANS](p));
+                    else uA[uA.length - 1] = a[INTERPOLATOR](a[START_VALUE], a[END_VALUE], a[INTERPOL_TRANS](p));
                 }
 
                 // Call the updator to do whatever it needs to do
@@ -141,7 +149,9 @@ function Animator () {
             uA = opts.updateArgs,
             iS = typeof opts.isSymmetric == 'boolean'? opts.isSymmetric : true,
             fG = new FrameGenerator (opts.numFrames),
-            dC = false; // direction change
+            dC = false, // direction change
+            iD = false, // initialized a direction
+            pF = false; // previous direction of the animation was forward
 
         // Create a new reference for the updater arguments and append a spot for the output of the interpolator function
         uA = uA? copyUpdateArgumentArray (uA) : [null];
@@ -150,7 +160,7 @@ function Animator () {
         if (!iA) fG.pause ();
 
         // Store the animation in the animation object
-        animations[opts.animationName] = [aD, sV, eV, ip, up, iT, uA, fG, iS, dC];
+        animations[opts.animationName] = [aD, sV, eV, ip, up, iT, uA, fG, iS, dC, iD, pF];
 
         return this;
     };
@@ -210,21 +220,16 @@ function Animator () {
 
     // Makes the specified animation's direction positive. Does nothing if the animation is not
     // found in the animations object.
-    var initDirection = false,
-        prevWasForward = false;
     this.setAnimationForward = function (animationName) {
         if (animations[animationName]) {
             animations[animationName][ANIM_DIRECTION] = true;
 
-            if (initDirection && !prevWasForward) {
-
-            	console.log ('direction change!+\n');
-
+            if (animations[animationName][INIT_DIRECTION] && !animations[animationName][PREV_WAS_FORWARD])
             	animations[animationName][ANIM_DIR_CHANGE] = true;
-            }
-            else initDirection = true;
 
-            prevWasForward = true;
+            else animations[animationName][INIT_DIRECTION] = true;
+
+            animations[animationName][PREV_WAS_FORWARD] = true;
         }
 
         return this;
@@ -236,15 +241,12 @@ function Animator () {
         if (animations[animationName]) {
             animations[animationName][ANIM_DIRECTION] = false;
 
-            if (initDirection && prevWasForward) {
-
-            	console.log ('direction change!-\n');
-
+            if (animations[animationName][INIT_DIRECTION] && animations[animationName][PREV_WAS_FORWARD])
             	animations[animationName][ANIM_DIR_CHANGE] = true;
-            }
-            else initDirection = true;
 
-            prevWasForward = false;
+            else animations[animationName][INIT_DIRECTION] = true;
+
+            animations[animationName][PREV_WAS_FORWARD] = false;
         }
 
         return this;
@@ -308,7 +310,10 @@ function Animator () {
      *     isPaused  - [] <Returns whether or not this FrameGenerator is paused> (Boolean)
      *     isStarted - [] <Returns whether or not this FrameGenerator was started> (Boolean)
      *     next      - [neg] <Generates the next frame value. Goes backward if !!neg is true> (this object)
-     *     frame     - [] <Returns the current frame value> (floating point value)
+     *     frame     - [] <Returns the current frame value> (float value)
+     *     percent   - [] <Returns the current percent value as the frame number divided by the number of frames> (float value)
+     *     revertTo  - [percentage] <Reverts the internal frame value to the value corresponding to the fed percentage> (this obj)
+     *     calculateXStar - [f, posToNeg] <Used to patch discontinuity for symmetric animation direction changes> (this object)
      */
     function FrameGenerator (numFrames) {
         var n = numFrames,
@@ -412,6 +417,31 @@ function Animator () {
             }
 
             return this;
+        };
+
+        // Calculates x* for + to - symmetric animation direction change
+        this.calculateXStar = function (f, positiveToNegative) {
+
+            var p = this.percent ();
+
+            // Interpolation is typically   (1 - f(p)) * start + f(p)         * stop   for positive animations
+            // and the interpolation is     f(1 - p)   * start + 1 - f(1 - p) * stop   for negative animations
+            var value = positiveToNegative? 1 - f(p) : f(1 - p),
+                closestValue = Infinity,
+                xStar = Infinity;
+
+            for (var i = 0; i <= n; i++) {
+                var nextValue = positiveToNegative? f(1 - i/n) : 1 - f(i/n);
+
+                if (Math.abs (nextValue - value) < Math.abs (closestValue - value)) {
+                    closestValue = nextValue;
+                    xStar = i / n;
+                }
+
+                if (closestValue == value) break;
+            }
+
+            return xStar;
         };
 
         /**
