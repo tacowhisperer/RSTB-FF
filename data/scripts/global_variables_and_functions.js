@@ -463,9 +463,6 @@ function positionInterpolate (start, stop, q) {
     var p = 1 - q,
         pI = p * start + q * stop;
 
-    // console.log ('p: ' + p + '; f(p): ' + pI);
-    // console.log ('q: ' + q + '; f(q): ' + (q * stop + p * start) + '\n');
-
     return pI;
 }
 
@@ -599,16 +596,17 @@ function pollForRES () {
     if (Date.now () - timeAtPoll <= MAX_TIME_DELAY_MS) {
         resNightSwitchToggle = document.getElementById ('nightSwitchToggle');
         resNightSwitchLi = resNightSwitchToggle? resNightSwitchToggle.parentNode : false;
-        if (resNightSwitchToggle) {
-            bT.makeTrue ('resIsInstalled');
-            resNightSwitchToggle.className.match (/enabled$/i)? bT.makeTrue ('isNightMode') : bT.makeFalse ('isNightMode');
 
-            // Switch the color of the menu if the RES day/night button is clicked
-            if (resNightSwitchLi) resNightSwitchLi.addEventListener ('mouseup', updateMenuBGColor);
-            else resNightSwitchToggle.addEventListener ('mouseup', updateMenuBGColor);
+        if (resNightSwitchToggle) enableRESSetting ();
+
+        // The new version of RES changed night switch names and HTML types
+        else {
+            resNightSwitchToggle = document.getElementById ('nightSwitchToggleContainer');
+            resNightSwitchLi = resNightSwitchToggle? resNightSwitchToggle.parentNode.parentNode : false;
+
+            if (resNightSwitchToggle) enableRESSetting ();
+            else requestAnimationFrame (pollForRES);
         }
-
-        else requestAnimationFrame (pollForRES);
     }
 
     else {
@@ -625,6 +623,15 @@ function pollForRES () {
             el.rstbMenuSVGPolygon.setAttribute ('fill', rgbaBG);
             el.rstbMenuSVGPolygon.style.stroke = rgbaSt;
         }, 0);
+    }
+
+    function enableRESSetting () {
+        bT.makeTrue ('resIsInstalled');
+        resNightSwitchToggle.className.match (/enabled$/i)? bT.makeTrue ('isNightMode') : bT.makeFalse ('isNightMode');
+
+        // Switch the color of the menu if the RES day/night button is clicked
+        if (resNightSwitchLi) resNightSwitchLi.addEventListener ('mouseup', updateMenuBGColor);
+        else resNightSwitchToggle.addEventListener ('mouseup', updateMenuBGColor);
     }
 }
 
