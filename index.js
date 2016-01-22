@@ -4,7 +4,7 @@ var data = require ('sdk/self').data,
 
 pM.PageMod ({
     include: /^https?:\/\/[^.]*\.?reddit\.com\/.*/,
-    exclude: /^https?:\/\/api\.reddit\.com\/.*/,
+    exclude: /^https?:\/\/(api|m)\.reddit\.com\/.*/,
 
     contentStyleFile: data.url ('menu.css'),
 
