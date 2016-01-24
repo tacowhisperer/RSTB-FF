@@ -588,7 +588,7 @@ function reloadSettingsFromLocalStorage (callback1, callback2) {
 
 
 // Polls for RES. Gives up after a predetermined time
-var MAX_TIME_DELAY_MS = 250,
+var MAX_TIME_DELAY_MS = 5000,
     timeAtPoll = Date.now (),
     NIGHT_MODE_URL_RGX = /^https?:\/\/nm\./i;
 
@@ -601,15 +601,15 @@ function pollForRES () {
 
         // The new version of RES changed night switch names and HTML types
         else {
-            resNightSwitchToggle = document.getElementById ('nightSwitchToggleContainer');
-            resNightSwitchLi = resNightSwitchToggle? resNightSwitchToggle.parentNode.parentNode : false;
+            var openRESPrefs = document.getElementById ('openRESPrefs');
 
-            if (resNightSwitchToggle) enableRESSetting ();
+            if (openRESPrefs) enableRESSetting ();
             else requestAnimationFrame (pollForRES);
         }
     }
 
     else {
+        // Background color can only be set once because a URL change means a page refresh
         document.URL.match (NIGHT_MODE_URL_RGX)? bT.makeTrue ('isNightMode') : bT.makeFalse ('isNightMode');
     }
 
@@ -625,13 +625,32 @@ function pollForRES () {
         }, 0);
     }
 
+    function updateMenuBGColorWithRESWithoutNightSwitchToggle () {
+        var a = document.querySelector ('[class*=res-night]');
+        a? bT.makeTrue ('isNightMode') : bT.makeFalse ('isNightMode');
+
+        var rgbaBG = 'rgba(' + (bT.holdsTrue ('isNightMode')? MENU_BG_NIGHT : MENU_BG_DAY) + ',' + ACTIVE_ALPHA + ')',
+            rgbaSt = 'rgba(' + (bT.holdsTrue ('isNightMode')? MENU_STROKE_NIGHT : MENU_STROKE_DAY) + ',' + ACTIVE_ALPHA + ')';
+
+        el.rstbMenuSVGPolygon.setAttribute ('fill', rgbaBG);
+        el.rstbMenuSVGPolygon.style.stroke = rgbaSt;
+    }
+
     function enableRESSetting () {
         bT.makeTrue ('resIsInstalled');
-        resNightSwitchToggle.className.match (/enabled$/i)? bT.makeTrue ('isNightMode') : bT.makeFalse ('isNightMode');
 
         // Switch the color of the menu if the RES day/night button is clicked
-        if (resNightSwitchLi) resNightSwitchLi.addEventListener ('mouseup', updateMenuBGColor);
-        else resNightSwitchToggle.addEventListener ('mouseup', updateMenuBGColor);
+        if (resNightSwitchLi) {
+            resNightSwitchToggle.className.match (/enabled$/i)? bT.makeTrue ('isNightMode') : bT.makeFalse ('isNightMode');
+            resNightSwitchLi.addEventListener ('mouseup', updateMenuBGColor);
+        }
+
+        else if (resNightSwitchToggle) {
+            resNightSwitchToggle.className.match (/enabled$/i)? bT.makeTrue ('isNightMode') : bT.makeFalse ('isNightMode');
+            resNightSwitchToggle.addEventListener ('mouseup', updateMenuBGColor);
+        }
+
+        else document.addEventListener ('mouseup', updateMenuBGColorWithRESWithoutNightSwitchToggle);
     }
 }
 
@@ -688,11 +707,13 @@ function executeButtonDisplayability () {
 // Displays the RSTB menu from the Reddit Tab menu
 function displayRSTBMenu (left, top) {
     if (bT.holdsTrue ('resIsInstalled')) {
-        resNightSwitchToggle.className.match (/enabled$/i)? bT.makeTrue ('isNightMode') : bT.makeFalse ('isNightMode');
-    }
+        if (resNightSwitchToggle)
+            resNightSwitchToggle.className.match (/enabled$/i)? bT.makeTrue ('isNightMode') : bT.makeFalse ('isNightMode');
 
-    else {
-        document.URL.match (NIGHT_MODE_URL_RGX)? bT.makeTrue ('isNightMode') : bT.makeFalse ('isNightMode');
+        else {
+            var a = document.querySelector ('[class*=res-night]');
+            a? bT.makeTrue ('isNightMode') : bT.makeFalse ('isNightMode');
+        }
     }
 
     var rgbaBG = 'rgba(' + (bT.holdsTrue ('isNightMode')? MENU_BG_NIGHT : MENU_BG_DAY) + ',' + ACTIVE_ALPHA + ')',
@@ -710,14 +731,6 @@ function displayRSTBMenu (left, top) {
 
 // Hides the RSTB menu from the viewport
 function hideRSTBMenu () {
-    if (bT.holdsTrue ('resIsInstalled')) {
-        resNightSwitchToggle.className.match (/enabled$/i)? bT.makeTrue ('isNightMode') : bT.makeFalse ('isNightMode');
-    }
-
-    else {
-        document.URL.match (NIGHT_MODE_URL_RGX)? bT.makeTrue ('isNightMode') : bT.makeFalse ('isNightMode');
-    }
-
     var rgbaBG = 'rgba(' + (bT.holdsTrue ('isNightMode')? MENU_BG_NIGHT : MENU_BG_DAY) + ',' + IDLE_ALPHA + ')',
         rgbaSt = 'rgba(' + (bT.holdsTrue ('isNightMode')? MENU_STROKE_NIGHT : MENU_STROKE_DAY) + ',' + IDLE_ALPHA + ')';
     el.rstbMenuDiv.style.display = 'none';
