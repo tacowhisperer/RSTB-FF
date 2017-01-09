@@ -37,13 +37,27 @@ var rstbBooleanTree = {
     },
 
     buttonAlwaysDisplayed: {
-        parents: [],
+        parents: ['screenIsFullScreen'],
         children: [],
         value: false
     },
 
     buttonIsDisplayedNow: {
         parents: [],
+        children: [],
+        value: false
+    },
+ 
+    screenIsFullScreen: {
+        parents: [],
+        children: ['buttonAlwaysDisplayed', 'buttonShouldBeVisibleToShowTheSidebar'],
+
+        // Inverted boolean value so that the button is shown when the screen is NOT full-screened
+        value: !(document.fullScreen || document.mozFullScreen || document.webkitIsFullScreen)
+    },
+ 
+    buttonShouldBeVisibleToShowTheSidebar: {
+        parents: ['screenIsFullScreen'],
         children: [],
         value: false
     }
@@ -675,18 +689,19 @@ function toggleSidebar () {
 
 function executeButtonDisplayability () {
     // Ensures that the button is visible if the side classes are not
-    var requiresButtonFunctionality = false;
+    bT.makeFalse ('buttonShouldBeVisibleToShowTheSidebar');
+
     for (var i = 0; i < redditSCA.length; i++) {
         var invisibleByDisplay = redditSCA[i].style.display == 'none',
             isAnnoyinglyBig = (redditSCA[i].offsetWidth / body.offsetWidth) >= SIDE_TO_BODY_RATIO;
 
         if (invisibleByDisplay || isAnnoyinglyBig) {
-            requiresButtonFunctionality = true;
+            bT.makeTrue ('buttonShouldBeVisibleToShowTheSidebar');
             break;
         }
     }
 
-    if (requiresButtonFunctionality || bT.holdsTrue ('buttonAlwaysDisplayed')) {
+    if (bT.holdsTrue ('buttonShouldBeVisibleToShowTheSidebar') || bT.holdsTrue ('buttonAlwaysDisplayed')) {
         el.redditSideToggleButton.style.display = sCDS[sCDS.length - 1];
         bT.makeTrue ('buttonIsDisplayedNow');
     }

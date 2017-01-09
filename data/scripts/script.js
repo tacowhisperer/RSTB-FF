@@ -154,6 +154,10 @@ for (var i = 0; i < redditContentArray.length; i++) redditContentArray[i].addEve
 if (redditListingChooser) redditListingChooser.addEventListener ('mousedown', hideRSTBMenu);
 
 window.addEventListener ('resize', executeButtonDisplayability);
+window.addEventListener ('mozfullscreenchange', function () {
+    bT.toggle ('screenIsFullScreen');
+    executeButtonDisplayability ();
+});
 
 
 
